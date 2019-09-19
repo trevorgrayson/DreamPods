@@ -8,9 +8,9 @@ int velocity = 1000;
 void setup() {
 Serial.begin(9600);
 pinMode(22, INPUT); //RED BUTTON
-pinMode(23, INPUT; //GREEN BUTTON
-pinMode(24, INPUT; //BLUE BUTTON
-pinMode(25, INPUT; //YELLOW BUTTON
+pinMode(23, INPUT); //GREEN BUTTON
+pinMode(24, INPUT); //BLUE BUTTON
+pinMode(25, INPUT); //YELLOW BUTTON
 
 pinMode(30, OUTPUT); //RED LED
 pinMode(31, OUTPUT); //GREEN LED
