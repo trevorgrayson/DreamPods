@@ -1,0 +1,153 @@
+int led = 13 ; // LED on arduino
+
+int analogPin1 = A0; //p1s1
+int analogPin2 = A1; //p1s2
+int analogPin3 = A2; //p1s3
+int analogPin4 = A3; //p1s4
+int analogPin5 = A4; //p1s5
+int analogPin6 = A5; //p1s6
+int analogPin7 = A6; //p2s1
+int analogPin8 = A7; //p2s2
+int analogPin9 = A8; //p2s3
+int analogPin10 = A9; //p2s4
+int analogPin11 = A10; //p2s5
+int analogPin12 = A11; //p2s6
+
+int analogVal1;
+int analogVal2;
+int analogVal3;
+int analogVal4;
+int analogVal5;
+int analogVal6;
+int analogVal7;
+int analogVal8;
+int analogVal9;
+int analogVal10;
+int analogVal11;
+int analogVal12;
+
+int levelwincount = 0;
+
+void setup () {
+  Serial.begin(9600);
+  pinMode(led, OUTPUT); 
+  pinMode(analogPin1, INPUT);
+  pinMode(analogPin2, INPUT);
+  pinMode(analogPin3, INPUT);
+  pinMode(analogPin4, INPUT);
+  pinMode(analogPin5, INPUT);
+  pinMode(analogPin6, INPUT);
+  pinMode(analogPin7, INPUT);
+  pinMode(analogPin8, INPUT);
+  pinMode(analogPin9, INPUT);
+  pinMode(analogPin10, INPUT);
+  pinMode(analogPin11, INPUT);
+  pinMode(analogPin12, INPUT);
+}
+
+void loop () {
+  analogVal1 = analogRead(analogPin1);
+  analogVal2 = analogRead(analogPin2);
+  analogVal3 = analogRead(analogPin3);
+  analogVal4 = analogRead(analogPin4);
+  analogVal5 = analogRead(analogPin5);
+  analogVal6 = analogRead(analogPin6);
+  analogVal7 = analogRead(analogPin7);
+  analogVal8 = analogRead(analogPin8);
+  analogVal9 = analogRead(analogPin9);
+  analogVal10 = analogRead(analogPin10);
+  analogVal11 = analogRead(analogPin11);
+  analogVal12 = analogRead(analogPin12);
+  
+  if (analogVal1 >= 1020){
+    Serial.println("sensor 1 = ON");
+    Serial.println(analogVal1);
+    delay(1000);}
+    else if (analogVal1 >= 300 and analogVal1 < 1000){
+      Serial.println("sensor 1 = NEAR");
+    Serial.println(analogVal1);}
+    else
+      Serial.println("sensor 1 = FAR");
+
+  if (analogVal2 >= 1020){
+    Serial.println("sensor 2 = ON");
+    Serial.println(analogVal2);
+      delay(1000);}
+    else if (analogVal2 >= 300 and analogVal2 < 1000){
+      Serial.println("sensor 2 = NEAR");
+    Serial.println(analogVal2);}
+    else
+      Serial.println("sensor 2 = FAR");
+      
+  if (analogVal3 >= 1020){
+    Serial.println("sensor 3 = ON");
+    Serial.println(analogVal3);
+      delay(1000);}
+    else if (analogVal3 >= 300 and analogVal3 < 1000){
+      Serial.println("sensor 3 = NEAR");
+    Serial.println(analogVal3);}
+    else
+      Serial.println("sensor 3 = FAR");
+
+  if (analogVal4 >= 1020){
+    Serial.println("sensor 4 = ON");
+    Serial.println(analogVal4);
+      delay(1000);}
+    else if (analogVal4 >= 300 and analogVal4 < 1000){
+      Serial.println("sensor 4 = NEAR");
+    Serial.println(analogVal4);}
+    else
+      Serial.println("sensor 4 = FAR");
+
+  if (analogVal5 >= 1020){
+    Serial.println("sensor 5 = ON");
+    Serial.println(analogVal5);
+      delay(1000);}
+    else if (analogVal5 >= 300 and analogVal5 < 1000){
+      Serial.println("sensor 5 = NEAR");
+    Serial.println(analogVal5);}
+    else
+      Serial.println("sensor 5 = FAR");
+
+  if (analogVal6 >= 1020){
+    Serial.println("sensor 6 = ON");
+    Serial.println(analogVal6);
+      delay(1000);}
+    else if (analogVal6 >= 300 and analogVal6 < 1000){
+      Serial.println("sensor 6 = NEAR");
+    Serial.println(analogVal6);}
+    else
+      Serial.println("sensor 6 = FAR");
+      
+      
+  if (analogVal1 == 1022 && analogVal4 == 1022) {
+    level1win();
+  }
+  if (analogVal2 == 1022 && analogVal5 == 1022) {
+    level2win();
+  }
+  if (analogVal3 == 1022 && analogVal6 == 1022) {
+    level3win();
+  }
+  
+  if (levelwincount == 3){
+  Serial.println("PUZZLE COMPLETE!");   
+  }
+  delay(100);
+}
+
+
+void level1win() {
+  Serial.println("Symbol 1 SYNC!");
+  levelwincount++;
+}
+  
+void level2win() {
+  Serial.println("Symbol 2 SYNC!");
+  levelwincount++;
+}
+
+void level3win() {
+  Serial.println("Symbol 3 SYNC!");
+  levelwincount++;
+}
