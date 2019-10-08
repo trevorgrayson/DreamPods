@@ -1,0 +1,117 @@
+// This is the first and simplest puzzle of the Dream Pod experience. Both players must stop the LED light strip cycle of 8 colors and the same color. Once both LED strips are synced, the puzzle is complete.
+//LedRGB library here = https://github.com/alexbertis/LibreriaLedRGB
+//MPR121 Library here = https://github.com/adafruit/Adafruit_MPR121
+
+#include <Arduino.h>
+#include <Wire.h>
+#include <LedRGB.h> //Used for controlling the LED RGB strips
+#include "Adafruit_MPR121.h" //Touch Capacitive shield library
+
+#ifndef _BV
+#define _BV(bit) (1 << (bit)) 
+#endif
+
+int color = 0;
+
+LedRGB myLED1(22, 23, 24, CC);
+LedRGB myLED2(25, 26, 27, CC);
+
+// You can have up to 4 on one i2c bus but one is enough for testing!
+Adafruit_MPR121 cap = Adafruit_MPR121();
+
+// Keeps track of the last pins touched
+// so we know when buttons are 'released'
+uint16_t lasttouched = 0;
+uint16_t currtouched = 0;
+
+void setup() {
+  Serial.begin(9600);
+  
+  while (!Serial) { // needed to keep leonardo/micro from starting too fast!
+    delay(10);
+  }
+  
+  Serial.println("Adafruit MPR121 Capacitive Touch sensor test"); 
+  
+  // Default address is 0x5A, if tied to 3.3V its 0x5B
+  // If tied to SDA its 0x5C and if SCL then 0x5D
+  if (!cap.begin(0x5A)) {
+    Serial.println("MPR121 not found, check wiring?");
+    while (1);
+  }
+  Serial.println("MPR121 found!");
+}
+
+void loop() {
+  led_cycle();
+  
+  // Get the currently touched pads
+  currtouched = cap.touched();
+  
+  for (uint8_t i=0; i<12; i++) {
+    // it if *is* touched and *wasnt* touched before, alert!
+    if ((currtouched & _BV(i)) && !(lasttouched & _BV(i)) ) {
+      Serial.print(i); Serial.println(" touched");  
+    }
+    // if it *was* touched and now *isnt*, alert!
+    if (!(currtouched & _BV(i)) && (lasttouched & _BV(i)) ) {
+      Serial.print(i); Serial.println(" released");
+    }
+  }
+
+  // reset our state
+  lasttouched = currtouched;
+}
+
+void led_cycle() {
+  while (!cap.touched()) {
+  const char* color_p1 = "";
+  const char* color_p2 = "";
+  
+  myLED1.defaultColor("red");
+  myLED2.defaultColor("red");
+  color_p1 = "red";
+  Serial.println("red");
+  color_p2 = "red";
+  delay(300);
+  myLED1.defaultColor("green");
+  myLED2.defaultColor("green");
+  color_p1 = "green";
+  Serial.println("green");
+  color_p2 = "green";
+  delay(300);
+  myLED1.defaultColor("blue");
+  myLED2.defaultColor("blue");
+  color_p1 = "blue";
+  Serial.println("blue");
+  color_p2 = "blue";
+  delay(300);
+  myLED1.defaultColor("yellow");
+  myLED2.defaultColor("yellow");
+  color_p1 = "yellow";
+  Serial.println("yellow");
+  color_p2 = "yellow";
+  delay(300);
+  myLED1.defaultColor("orange");
+  myLED2.defaultColor("orange");
+  color_p1 = "orange";
+  Serial.println("orange");
+  color_p2 = "orange";
+  delay(300);
+  myLED1.defaultColor("violet");
+  myLED2.defaultColor("violet");
+  color_p1 = "violet";
+  Serial.println("violet");
+  color_p2 = "violet";
+  delay(300);
+  myLED1.defaultColor("turquoise");
+  myLED2.defaultColor("turquoise");
+  color_p1 = "turquoise";
+  Serial.println("turquoise");
+  color_p2 = "turquoise";
+  delay(300);
+  if (cap.touched())
+    myLED1.defaultColor(color_p1);
+    myLED2.off();
+  }
+}
