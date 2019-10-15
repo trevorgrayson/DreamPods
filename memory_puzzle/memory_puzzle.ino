@@ -69,22 +69,23 @@ void loop() {
   p1Position = 0;
   p2Position = 0;
   
-  
   // one sequence
-  for (int i = 0; i <= roundCounter; i++) { //for each button to be pressed in the sequence
+  while (p1Position <= roundCounter) { //for each button to be pressed in the sequence
     startTime = millis();  
   
   
     while(gameStarted == true) {
       p1Button = buttonCheckP1();      //every loop check to see which button is pressed
+      p2Button = buttonCheckP2();      //every loop check to see which button is pressed
 
       if (p1Button != NOT_PRESSED) {            //if a button is pressed... (4 means that no button is pressed)
 
         flashLED(p1Button);          //flash the LED for the button that was pressed
 
-        if (p1Button == buttonSequence[i]) { //if the button matches the button in the sequence
+        if (p1Button == buttonSequence[p1Position]) { //if the button matches the button in the sequence
           delay(250);                   //leave the LED light on for a moment
           allLEDoff();                  //then turn off all of the lights and
+          p1Position++;
           break;                        //end the while loop (this will go to the next number in the for loop)
         } else {
           loseSequence();
