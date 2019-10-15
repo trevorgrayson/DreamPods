@@ -71,8 +71,7 @@ void loop() {
   
   // one sequence
   while (p1Position <= roundCounter) { //for each button to be pressed in the sequence
-    startTime = millis();  
-  
+    startTime = millis();
   
     while(gameStarted == true) {
       p1Button = buttonCheckP1();      //every loop check to see which button is pressed
@@ -83,7 +82,7 @@ void loop() {
         flashLED(p1Button);          //flash the LED for the button that was pressed
 
         if (p1Button == buttonSequence[p1Position]) { //if the button matches the button in the sequence
-          delay(250);                   //leave the LED light on for a moment
+          delay(250);                   // this will block the other user from pressing a button, but some delay is needed here.
           allLEDoff();                  //then turn off all of the lights and
           p1Position++;
           break;                        //end the while loop (this will go to the next number in the for loop)
@@ -100,7 +99,6 @@ void loop() {
         loseSequence();                       //play the lose sequence
         break;                                //when the program gets back from the lose sequence, break the while loop so that the game can start over
       }
-
     }
   }
 
