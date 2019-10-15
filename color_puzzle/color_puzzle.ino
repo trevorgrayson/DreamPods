@@ -94,8 +94,9 @@ void setup() {
   Serial.println("MPR121 found!");
 }
 
-void loop() { updatePlayer(&p1seq); // update player colors
-    updatePlayer(&p2seq);
+void loop() { 
+    if (!isP1touching()) updatePlayer(&p1seq); // update player colors
+    if (!isP2touching()) updatePlayer(&p2seq);
 
     // set colors
     p1Lights.defaultColor(sequence[p1seq]); // change displayed lights
