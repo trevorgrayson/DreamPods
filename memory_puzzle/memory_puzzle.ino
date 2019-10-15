@@ -1,6 +1,9 @@
 
 //set the pins where the buttons, LEDs and buzzer connect
+const int NOT_PRESSED = 369;
+const int SEQUENCE_COMPLETE = 255;
 const int BTN_COUNT = 8;
+
 int button[] = {22, 23, 24, 25,     //red is button[0], yellow is button[1], green is button[2], blue is button[3]
                 26, 27, 28, 29     
 };  
@@ -11,10 +14,14 @@ int tones[] = {262, 330, 392, 494}; //tones to play with each button (c, e, g, b
 
 int roundsToWin = 10;         //number of rounds the player has to play before they win the game (the array can only hold up to 16 rounds)
 int buttonSequence[16];       //make an array of numbers that will be the sequence that the player needs to remember
+int p1Position = 0;
+int *p2Position = buttonSequence;
 
 int buzzerPin = 10;           //pin that the buzzer is connected to
 
-int pressedButton = 4;        //a variable to remember which button is being pressed. 4 is the value if no button is being pressed.
+int p1Button = NOT_PRESSED;        //a variable to remember which button is being pressed.
+int p2Button = NOT_PRESSED;
+
 int roundCounter = 1;         //keeps track of what round the player is on
 
 
@@ -22,6 +29,7 @@ long startTime = 0;           //timer variable for time limit on button press
 long timeLimit = 2000;        //time limit to hit a button
 
 boolean gameStarted = false;      //variable to tell the game whether or not to play the start sequence
+boolean correct = false;
 
 void setup() {
   Serial.begin(9600);
@@ -37,6 +45,7 @@ void setup() {
   pinMode(buzzerPin, OUTPUT);   //set the buzzer pin to output
 }
 
+
 void loop() {
 
   if (gameStarted == false) {   //if the game hasn't started yet
@@ -48,47 +57,52 @@ void loop() {
 
   //each round, start by flashing out the sequence to be repeated
   for (int i = 0; i <= roundCounter; i++) { //go through the array up to the current round number
-    flashLED(buttonSequence[i]); //turn on the LED for that array position and play the sound
+    flashBoth(buttonSequence[i]); //turn on the LED for that array position and play the sound
     Serial.println(buttonSequence[i]);
     delay(200);                           //wait
     allLEDoff();                          //turn all of the LEDs off
     delay(200);
   }
 
+
   //then start going through the sequence one at a time and see if the user presses the correct button
+  p1Position = 0;
+  p2Position = 0;
+  
+  
+  // one sequence
   for (int i = 0; i <= roundCounter; i++) { //for each button to be pressed in the sequence
+    startTime = millis();  
+  
+  
+    while(gameStarted == true) {
+      p1Button = buttonCheckP1();      //every loop check to see which button is pressed
 
-    startTime = millis();                 //record the start time
+      if (p1Button != NOT_PRESSED) {            //if a button is pressed... (4 means that no button is pressed)
 
-    while (gameStarted == true) { //loop until the player presses a button or the time limit is up (the time limit check is in an if statement)
+        flashLED(p1Button);          //flash the LED for the button that was pressed
 
-      pressedButton = buttonCheck();      //every loop check to see which button is pressed
-
-      if (pressedButton < 4) {            //if a button is pressed... (4 means that no button is pressed)
-
-        flashLED(pressedButton);          //flash the LED for the button that was pressed
-
-        if (pressedButton == buttonSequence[i]) { //if the button matches the button in the sequence
+        if (p1Button == buttonSequence[i]) { //if the button matches the button in the sequence
           delay(250);                   //leave the LED light on for a moment
           allLEDoff();                  //then turn off all of the lights and
           break;                        //end the while loop (this will go to the next number in the for loop)
-
-        } else {                          //if the button doesn't match the button in the sequence
-          loseSequence();               //play the lose sequence (the loose sequence stops the program)
-          break;                        //when the program gets back from the lose sequence, break the while loop so that the game can start over
+        } else {
+          loseSequence();
+          break;
         }
-
-      } else {                            //if no button is pressed
-        allLEDoff();                      //turn all the LEDs off
+      } else {
+        allLEDoff();
       }
-
+    
       //check to see if the time limit is up
       if (millis() - startTime > timeLimit) { //if the time limit is up
         loseSequence();                       //play the lose sequence
         break;                                //when the program gets back from the lose sequence, break the while loop so that the game can start over
       }
+
     }
   }
+
 
   if (gameStarted == true) {
     roundCounter = roundCounter + 1;      //increase the round number by 1
@@ -106,10 +120,16 @@ void loop() {
 
 //FLASH LED
 void flashLED (int ledNumber) {
+  if (ledNumber == NOT_PRESSED)
+    return;
   Serial.println("flashing");
   digitalWrite(led[ledNumber],   HIGH);
-  digitalWrite(led[ledNumber+4], HIGH);  // ditto for player2
   tone(buzzerPin, tones[ledNumber]);
+}
+
+void flashBoth (int ledNumber) {
+  flashLED(ledNumber);
+  flashLED(ledNumber+4);
 }
 
 //TURN ALL LEDS OFF
@@ -122,7 +142,7 @@ void allLEDoff () {
 }
 
 //CHECK WHICH BUTTON IS PRESSED
-int buttonCheck() {
+int buttonCheckP1() {
   //check if any buttons are being pressed
   if (digitalRead(button[0]) == HIGH) {
     Serial.println("RED ON");
@@ -137,7 +157,26 @@ int buttonCheck() {
     Serial.println("YELLOW ON");
     return 3;
   } else {
-    return 4; //this will be the value for no button being pressed
+    return NOT_PRESSED; //this will be the value for no button being pressed
+  }
+  
+}
+
+int buttonCheckP2() {
+   if (digitalRead(button[4]) == HIGH) {
+    Serial.println("RED ON");
+    return 0;
+  } else if (digitalRead(button[5]) == HIGH) {
+    Serial.println("GREEN ON");
+    return 1;
+  } else if (digitalRead(button[6]) == HIGH) {
+    Serial.println("BLUE ON");
+    return 2;
+  } else if (digitalRead(button[7]) == HIGH) {
+    Serial.println("YELLOW ON");
+    return 3;
+  } else {
+    return NOT_PRESSED; //this will be the value for no button being pressed
   }
 }
 
@@ -149,6 +188,8 @@ void startSequence() {
   //populate the buttonSequence array with random numbers from 0 to 3
   for (int i = 0; i <= roundsToWin; i++) {
     buttonSequence[i] = round(random(0, 4));
+    p1Position = 0;
+    p2Position = 0;
   }
 
   //flash all of the LEDs 3 times when the game starts
@@ -195,8 +236,9 @@ void winSequence() {
 
   //wait until a button is pressed
   do {
-    pressedButton = buttonCheck();
-  } while (pressedButton > 3);
+    p1Button = buttonCheckP1();
+    p2Button = buttonCheckP2();
+  } while (p1Button == NOT_PRESSED & p2Button == NOT_PRESSED);
   delay(100);
 
   gameStarted = false;   //reset the game so that the start sequence will play again.
@@ -208,9 +250,7 @@ void loseSequence() {
   Serial.println("Lose!");
   //turn all the LEDs on
   for (int j = 0; j <= BTN_COUNT; j++) {
-  //  digitalWrite(led[j], HIGH);
-  
-    
+    digitalWrite(led[j], HIGH);  
   }
 
   //play the 1Up noise
@@ -225,8 +265,9 @@ void loseSequence() {
 
   //wait until a button is pressed
   do {
-    pressedButton = buttonCheck();
-  } while (pressedButton > 3);
+    p1Button = buttonCheckP1();
+    p2Button = buttonCheckP2();
+  } while (p1Button == NOT_PRESSED & p2Button == NOT_PRESSED);
   delay(200);
 
   gameStarted = false;   //reset the game so that the start sequence will play again.
