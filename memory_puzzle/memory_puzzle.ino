@@ -12,10 +12,10 @@ int led[] =    {30, 31, 33, 32,     //red is led[0], yellow is led[1], green is 
 };     
 int tones[] = {262, 330, 392, 494}; //tones to play with each button (c, e, g, b)
 
-int roundsToWin = 10;         //number of rounds the player has to play before they win the game (the array can only hold up to 16 rounds)
+int roundsToWin = 8;         //number of rounds the player has to play before they win the game (the array can only hold up to 16 rounds)
 int buttonSequence[16];       //make an array of numbers that will be the sequence that the player needs to remember
 int p1Position = 0;
-int *p2Position = buttonSequence;
+int p2Position = 0;
 
 int buzzerPin = 10;           //pin that the buzzer is connected to
 
@@ -29,7 +29,8 @@ long startTime = 0;           //timer variable for time limit on button press
 long timeLimit = 2000;        //time limit to hit a button
 
 boolean gameStarted = false;      //variable to tell the game whether or not to play the start sequence
-boolean correct = false;
+int correct = 0;
+int fails = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -53,6 +54,8 @@ void loop() {
     roundCounter = 0;           //reset the round counter
     delay(1500);                //wait a second and a half
     gameStarted = true;         //set gameStarted to true so that this sequence doesn't start again
+  } else {
+    Serial.println("game not started.");
   }
 
   //each round, start by flashing out the sequence to be repeated
@@ -64,44 +67,72 @@ void loop() {
     delay(200);
   }
 
-
+  // then block for both players input.
   //then start going through the sequence one at a time and see if the user presses the correct button
   p1Position = 0;
   p2Position = 0;
   
   // one sequence
-  while (p1Position <= roundCounter) { //for each button to be pressed in the sequence
-    startTime = millis();
+  while (p1Position <= roundCounter | p2Position <= roundCounter) { //for each button to be pressed in the sequence
+    correct = 0;
+    fails = 0;
+    startTime = millis();  // dies on total time to respond to sequence.
   
     while(gameStarted == true) {
-      p1Button = buttonCheckP1();      //every loop check to see which button is pressed
-      p2Button = buttonCheckP2();      //every loop check to see which button is pressed
+      p1Button = buttonCheckP1();    //every loop check to see which button is pressed
+      p2Button = buttonCheckP2();    //every loop check to see which button is pressed
 
-      if (p1Button != NOT_PRESSED) {            //if a button is pressed... (4 means that no button is pressed)
+      // player1
+      if (p1Button != NOT_PRESSED) { // if a button is pressed...
 
         flashLED(p1Button);          //flash the LED for the button that was pressed
 
         if (p1Button == buttonSequence[p1Position]) { //if the button matches the button in the sequence
-          delay(250);                   // this will block the other user from pressing a button, but some delay is needed here.
+          // TODO: issue No light to confirm or hardwire light on when pressed? other?
+          delay(250);                // this will block the other user from pressing a button, but some delay is needed here.
           allLEDoff();                  //then turn off all of the lights and
           p1Position++;
-          break;                        //end the while loop (this will go to the next number in the for loop)
+          correct++;
         } else {
-          loseSequence();
-          break;
+          fails++;
         }
       } else {
         allLEDoff();
       }
-    
-      //check to see if the time limit is up
-      if (millis() - startTime > timeLimit) { //if the time limit is up
-        loseSequence();                       //play the lose sequence
-        break;                                //when the program gets back from the lose sequence, break the while loop so that the game can start over
+      
+      // player2
+      if (p2Button != NOT_PRESSED) { // if a button is pressed... if either button is pressed, start over.
+
+        flashLED(p2Button+4);          // TODO +4 HACK
+
+        if (p2Button == buttonSequence[p2Position]) { //if the button matches the button in the sequence
+          // TODO: issue No light to confirm or hardwire light on when pressed? other?
+          delay(250);                // TODO THIS IS GOING TO SCREW UP USERS. it will block the other user from pressing a button, but some delay is needed here, or no light.
+          allLEDoff();                  //then turn off all of the lights and
+          p2Position++;
+          correct++;
+        } else {
+          fails++;
+        }
+      } else {
+        allLEDoff();
+      }
+
+      if(correct > 0) {  // delaying break so second player can go.
+        break;
+      }
+      
+      if(fails > 0) {
+        break;
       }
     }
+    
+    //check to see if the time limit is up
+    if (fails > 0 | (millis() - startTime > timeLimit)) { //if the time limit is up
+      loseSequence();                       //play the lose sequence
+      break;                                //when the program gets back from the lose sequence, break the while loop so that the game can start over
+    }
   }
-
 
   if (gameStarted == true) {
     roundCounter = roundCounter + 1;      //increase the round number by 1
@@ -211,6 +242,12 @@ void startSequence() {
   } //this will repeat 4 times
 }
 
+void reset() { //reset the game so that the start sequence will play again.
+    gameStarted = false;   
+    p1Position = 0;
+    p2Position = 0;
+}
+
 //WIN SEQUENCE
 void winSequence() {
   Serial.println("Win!");
@@ -239,9 +276,8 @@ void winSequence() {
     p2Button = buttonCheckP2();
   } while (p1Button == NOT_PRESSED & p2Button == NOT_PRESSED);
   delay(100);
-
-  gameStarted = false;   //reset the game so that the start sequence will play again.
-
+  
+  reset();
 }
 
 //LOSE SEQUENCE
@@ -267,7 +303,9 @@ void loseSequence() {
     p1Button = buttonCheckP1();
     p2Button = buttonCheckP2();
   } while (p1Button == NOT_PRESSED & p2Button == NOT_PRESSED);
-  delay(200);
+  Serial.println("escaped");
+  gameStarted = false;   
 
-  gameStarted = false;   //reset the game so that the start sequence will play again.
+  delay(200);
+  reset();
 }
