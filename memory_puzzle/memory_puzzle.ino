@@ -88,9 +88,6 @@ void loop() {
         flashLED(p1Button);          //flash the LED for the button that was pressed
 
         if (p1Button == buttonSequence[p1Position]) { //if the button matches the button in the sequence
-          // TODO: issue No light to confirm or hardwire light on when pressed? other?
-          delay(250);                // this will block the other user from pressing a button, but some delay is needed here.
-          allLEDoff();                  //then turn off all of the lights and
           p1Position++;
           correct++;
         } else {
@@ -119,6 +116,9 @@ void loop() {
       }
 
       if(correct > 0) {  // delaying break so second player can go.
+        delay(250);                // this will block the other user from pressing a button, but some delay is needed here.
+                                   // TODO: issue No light to confirm or hardwire light on when pressed? other?
+        allLEDoff();               //then turn off all of the lights and
         break;
       }
       
